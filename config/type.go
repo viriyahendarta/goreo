@@ -2,6 +2,7 @@ package config
 
 //Config holds all config
 type Config struct {
+	Debug        bool       `json:"debug"`
 	HTTPServer   HTTPServer `json:"http_server"`
 	CoreDatabase Database   `json:"core_database"`
 }

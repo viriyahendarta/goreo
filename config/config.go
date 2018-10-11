@@ -38,8 +38,7 @@ func Init() {
 	}
 }
 
-//readConfig read config json
-func readConfig() (*Config, error) {
+func GetEnv() string {
 	env := os.Getenv(appEnv)
 
 	switch env {
@@ -47,6 +46,13 @@ func readConfig() (*Config, error) {
 	default:
 		env = envDevelopment
 	}
+
+	return env
+}
+
+//readConfig read config json
+func readConfig() (*Config, error) {
+	env := GetEnv()
 
 	path := fmt.Sprintf("%s%s.json", configPath, env)
 	c, err := ioutil.ReadFile(path)

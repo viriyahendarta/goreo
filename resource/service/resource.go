@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/viriyahendarta/goreo/config"
+
 	"github.com/gorilla/mux"
 
 	cont "github.com/viriyahendarta/goreo/infra/context"
-	e "github.com/viriyahendarta/goreo/infra/error"
+	"github.com/viriyahendarta/goreo/infra/rror"
 	businessresource "github.com/viriyahendarta/goreo/resource/business"
 )
 
@@ -18,20 +20,22 @@ type Resource struct {
 	Router           *mux.Router
 }
 
-//RenderJSON inject header and payload into response
-func (r *Resource) RenderJSON(ctx context.Context, w http.ResponseWriter, data interface{}, err error) {
-	var header APIHeader
-
-	header.ProcessTime = cont.GetElapsedTime(ctx)
-	status := http.StatusOK
+func (r *Resource) RenderJSON(ctx context.Context, w http.ResponseWriter, data interface{}, status int, err error) {
+	header := APIHeader{
+		ProcessTime: cont.GetElapsedTime(ctx),
+		Message:     "success",
+	}
 
 	if err != nil {
-		e := e.Cast(err)
-		status = e.GetErrorTypeCode().HttpCode
-		header.ErrorCode = e.GetErrorTypeCode().Message
-		header.Message = e.GetMessage()
-		header.Reason = e.Error()
-		data = nil
+		r := rror.Cast(err)
+		header.Message = "error"
+
+		if config.Get().Debug {
+			header.Message = r.Message
+			header.ErrorCode = int(r.Code)
+			header.ErrorType = string(r.Type)
+			header.ErrorReason = r.Err.Error()
+		}
 	}
 
 	response := APIResponse{
@@ -39,6 +43,7 @@ func (r *Resource) RenderJSON(ctx context.Context, w http.ResponseWriter, data i
 		Payload: data,
 	}
 	byteData, _ := json.Marshal(response)
+
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	w.Write(byteData)

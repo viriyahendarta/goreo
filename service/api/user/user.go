@@ -11,7 +11,7 @@ import (
 
 //API holds all user services
 type API interface {
-	GetUserProfile(r *http.Request) (interface{}, error)
+	GetUserProfile(r *http.Request) (interface{}, int, error)
 }
 
 //iUserAPI holds data needed for user api

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/facebookgo/grace/gracehttp"
+	"github.com/viriyahendarta/goreo/config"
 	cont "github.com/viriyahendarta/goreo/infra/context"
 	serviceresource "github.com/viriyahendarta/goreo/resource/service"
 	"github.com/viriyahendarta/goreo/service/api/user"
@@ -27,7 +28,7 @@ func (s *httpServer) Run() error {
 	s.registerAPI()
 
 	address := fmt.Sprint("0.0.0.0:", s.port)
-	log.Printf("Starting server at %s\n", address)
+	log.Printf("Starting [%s] server at %s\n", config.GetEnv(), address)
 	return gracehttp.Serve(&http.Server{
 		Addr:         address,
 		Handler:      s.router,
@@ -40,14 +41,14 @@ func (s *httpServer) Run() error {
 func (s *httpServer) registerAPI() {
 	userAPI := user.GetAPI(s.serviceResource)
 
-	s.router.HandleFunc("/user/{user_id}/profile", s.handle(userAPI.GetUserProfile))
+	s.router.HandleFunc("/user/{user_id}/profile", s.handle(userAPI.GetUserProfile)).Methods(http.MethodGet)
 }
 
 //handle is a helper function to wrap http handleFunc
 func (s *httpServer) handle(handler httpHandlerFunc) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), cont.StartTime, time.Now())
-		response, err := handler(r)
-		s.serviceResource.RenderJSON(ctx, w, response, err)
+		response, httpCode, err := handler(r)
+		s.serviceResource.RenderJSON(ctx, w, response, httpCode, err)
 	}
 }

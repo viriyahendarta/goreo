@@ -4,8 +4,10 @@ package service
 type APIHeader struct {
 	ProcessTime string `json:"process_time"`
 	Message     string `json:"message"`
-	Reason      string `json:"reason"`
-	ErrorCode   string `json:"error_code"`
+
+	ErrorCode   int    `json:"error_code"`
+	ErrorType   string `json:"error_type"`
+	ErrorReason string `json:"error_reason"`
 }
 
 //APIResponse defines API response structure
